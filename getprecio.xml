@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="91" doc:name="HTTP Listener Configuration"/>
+    <db:mysql-config name="MySQL_Configuration" host="localhost" port="3306" user="usrPrecios" password="5czsxy9xHh5zHF35" database="INTEGRA" doc:name="MySQL Configuration"/>
+    <flow name="getprecioFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/getPrecio" doc:name="HTTP"/>
+        <set-variable variableName="sku" value="#[message.inboundProperties[&quot;http.query.params&quot;][&quot;sku&quot;]]" doc:name="Variable"/>
+        <set-variable variableName="fecha" value="#[message.inboundProperties[&quot;http.query.params&quot;][&quot;fecha&quot;]]" doc:name="Variable"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[SELECT * FROM INTEGRA.PRECIOS p WHERE p.sku = #[sku] AND p.Fecha_Inicio < #[fecha] ORDER BY p.Fecha_Inicio DESC LIMIT 1]]></db:parameterized-query>
+        </db:select>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+    </flow>
+</mule>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:twitter="http://www.mulesoft.org/schema/mule/twitter" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/twitter http://www.mulesoft.org/schema/mule/twitter/current/mule-twitter.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    <twitter:config name="Twitter" accessKey="3348392763-VuzcS6Z2Yip1kcgasyM4SU7Am7Xyr5KO5FCOhWX" accessSecret="cvKZpqFLeW9FvgcnHsmupeKD8Y1JV5UDQsQZUsNtqjNvJ" consumerKey="VNo610dr0nCpkQoigBrI7gJwP" consumerSecret="HpCytx9gVKgzYQ5guWevUl52QlbWDvFL7gKxlCKYMYxtyhZMMx" doc:name="Twitter"/>
+    <db:mysql-config name="MySQL_Configurationtweeter" host="localhost" port="3306" user="usrUrl" password="TQy4TdacyuK8R8Cy" database="INTEGRA" doc:name="MySQL Configuration"/>
+    <flow name="interturlFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/inserturl" doc:name="HTTP"/>
+        <set-variable variableName="tweet" value="#[message.inboundProperties[&quot;http.query.params&quot;][&quot;tweet&quot;]]" doc:name="Variable"/>
+        <twitter:update-status config-ref="Twitter" status="#[tweet]" doc:name="Twitter"/>
+        <set-variable variableName="url" value="https://twitter.com/grupo6ti/status/#[message.payload.id]" doc:name="Variable"/>
+        <db:insert config-ref="MySQL_Configurationtweeter" doc:name="Database">
+            <db:parameterized-query><![CDATA[Insert into INTEGRA.TWEETS (Url, Grupo) Values (#[url], 6)]]></db:parameterized-query>
+        </db:insert>
+        <db:select config-ref="MySQL_Configurationtweeter" doc:name="Database">
+            <db:parameterized-query><![CDATA[Select * from INTEGRA.TWEETS t where t.Url = #[url]]]></db:parameterized-query>
+        </db:select>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+    </flow>
+</mule>
